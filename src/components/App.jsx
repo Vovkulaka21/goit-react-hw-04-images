@@ -1,6 +1,6 @@
 import css from './App.module.css';
 
-import { Component } from 'react';
+import { Component, useState, useEffect } from 'react';
 import { searchImages } from 'api/gallery';
 
 import Searchbar from './Serachbar/Searchbar';
@@ -10,6 +10,37 @@ import Loader from './Loader/Loader';
 import Button from './Button/Button';
 import Modal from './Modal/Modal';
 
+
+const App = () => {
+  const [search, setSearch] = useState('');
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [largeImage, setLargeImage] = useState('')
+
+
+  return (
+    <>
+      <Searchbar onSubmit={this.handleSearch} />
+      <div className={css.app_box}>
+        {this.state.error && <p>{this.state.error}</p>}
+        {Boolean(this.state.images.length) && (
+          <ImageGallery>
+            <ImageGalleryItem showModal={this.showModal} images={this.state.images} />
+          </ImageGallery>
+        )}
+        {this.state.loading && <Loader />}
+        {Boolean(this.state.images.length) && (
+          <Button onClick={this.pageRiser} />
+        )}
+      </div>
+      {this.state.modalOpen && <Modal close={this.closeModal}><img src={this.state.largeImage} alt="img" /></Modal>}
+    </>
+  );
+}
+
+/* 
 export class App extends Component {
   state = {
     search: '',
@@ -87,4 +118,6 @@ closeModal = () => {
       </>
     );
   }
-}
+} */
+
+export default App
