@@ -1,6 +1,6 @@
 import css from './App.module.css';
 
-import { Component, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { searchImages } from 'api/gallery';
 
 import Searchbar from './Serachbar/Searchbar';
@@ -10,35 +10,74 @@ import Loader from './Loader/Loader';
 import Button from './Button/Button';
 import Modal from './Modal/Modal';
 
-
 const App = () => {
   const [search, setSearch] = useState('');
   const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [largeImage, setLargeImage] = useState('')
+  const [largeImage, setLargeImage] = useState('');
 
+  useEffect(() => {
+    const fetchImages = async () => {
+      if (search) {
+        try {
+          setLoading(true);
+          const { data } = await searchImages(search, page);
+          const { hits } = data;
+          setImages(prevImages =>
+            hits?.length ? [...prevImages, ...hits] : prevImages
+          );
+        } catch (error) {
+          setError(error.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchImages();
+  }, [search, page]);
+
+  const handleSearch = ({ search }) => {
+    setSearch(search);
+    setImages([]);
+    setPage(1);
+  };
+
+  const pageRiser = () => setPage(prevPage => prevPage + 1);
+
+  const showModal = largeImageURL => {
+    setModalOpen(true);
+    setLargeImage(largeImageURL);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
 
   return (
     <>
-      <Searchbar onSubmit={this.handleSearch} />
+      <Searchbar onSubmit={handleSearch} />
       <div className={css.app_box}>
-        {this.state.error && <p>{this.state.error}</p>}
-        {Boolean(this.state.images.length) && (
+        {error && <p>{error}</p>}
+        {Boolean(images.length) && (
           <ImageGallery>
-            <ImageGalleryItem showModal={this.showModal} images={this.state.images} />
+            <ImageGalleryItem showModal={showModal} images={images} />
           </ImageGallery>
         )}
-        {this.state.loading && <Loader />}
-        {Boolean(this.state.images.length) && (
-          <Button onClick={this.pageRiser} />
-        )}
+        {loading && <Loader />}
+        {Boolean(images.length) && <Button onClick={pageRiser} />}
       </div>
-      {this.state.modalOpen && <Modal close={this.closeModal}><img src={this.state.largeImage} alt="img" /></Modal>}
+      {modalOpen && (
+        <Modal close={closeModal}>
+          <img src={largeImage} alt="img" />
+        </Modal>
+      )}
     </>
   );
-}
+};
 
 /* 
 export class App extends Component {
@@ -120,4 +159,4 @@ closeModal = () => {
   }
 } */
 
-export default App
+export default App;
